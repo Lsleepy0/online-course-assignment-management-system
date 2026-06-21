@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}我的作业{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">我的作业</h5></div>
+    <div class="card-body">
+        <h6>未完成作业</h6>
+        <table class="table table-bordered table-hover mb-4">
+            <thead class="table-light">
+                <tr><th>编号</th><th>名称</th><th>课程</th><th>总分</th><th>截止时间</th><th>状态</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                {% if not item.submission or item.submission.status == '未提交' %}
+                <tr>
+                    <td>{{ item.hw.id }}</td>
+                    <td>{{ item.hw.name }}</td>
+                    <td>{{ item.hw.course.name if item.hw.course else '' }}</td>
+                    <td>{{ item.hw.total_score }}</td>
+                    <td>{{ item.hw.deadline.strftime('%Y-%m-%d %H:%M') if item.hw.deadline else '' }}</td>
+                    <td><span class="badge bg-secondary">未完成</span></td>
+                    <td><a href="/homework/answer/{{ item.hw.id }}" class="btn btn-sm btn-primary">开始答题</a></td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h6>已完成作业</h6>
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr><th>编号</th><th>名称</th><th>课程</th><th>总分</th><th>状态</th><th>成绩</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                {% if item.submission and item.submission.status in ['已提交','已批改'] %}
+                <tr>
+                    <td>{{ item.hw.id }}</td>
+                    <td>{{ item.hw.name }}</td>
+                    <td>{{ item.hw.course.name if item.hw.course else '' }}</td>
+                    <td>{{ item.hw.total_score }}</td>
+                    <td>
+                        {% if item.submission.status == '已批改' %}
+                        <span class="badge bg-success">已批改</span>
+                        {% else %}
+                        <span class="badge bg-info">已提交</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.submission.total_score if item.submission.total_score != None else '-' }}</td>
+                    <td>
+                        {% if item.submission.status == '已批改' %}
+                        <a href="/homework/result/{{ item.hw.id }}" class="btn btn-sm btn-outline-primary">查看结果</a>
+                        {% else %}
+                        <a href="/homework/answer/{{ item.hw.id }}" class="btn btn-sm btn-outline-secondary">查看答题</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}试题审核{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">待审核试题列表</h5></div>
+    <div class="card-body">
+        {% if not questions %}
+        <p class="text-muted">暂无待审核试题</p>
+        {% endif %}
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>编号</th>
+                    <th>题目内容</th>
+                    <th>类型</th>
+                    <th>所属课程</th>
+                    <th>录入人</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr>
+                    <td>{{ q.id }}</td>
+                    <td>{{ q.content[:40] }}{% if q.content|length > 40 %}...{% endif %}</td>
+                    <td>{{ q.type }}</td>
+                    <td>{{ q.course.name if q.course else '' }}</td>
+                    <td>{{ q.creator or '' }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" onclick="viewDetail({{ q.id }})">查看详情</button>
+                        <button class="btn btn-sm btn-success" onclick="approve({{ q.id }})">通过</button>
+                        <button class="btn btn-sm btn-danger" onclick="reject({{ q.id }})">驳回</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">试题详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailBody"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">驳回原因</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rejectId">
+                <div class="mb-3">
+                    <label class="form-label">驳回原因</label>
+                    <textarea class="form-control" id="rejectReason"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">确认驳回</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function approve(id){
+    if(!confirm('确认通过该试题？')) return;
+    fetch('/questions/review/approve/'+id, {method:'POST'}).then(r=>r.json()).then(d=>{
+        if(d.success){ location.reload(); }
+        else { alert(d.error||'操作失败'); }
+    });
+}
+function reject(id){
+    document.getElementById('rejectId').value = id;
+    document.getElementById('rejectReason').value = '';
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+function confirmReject(){
+    var id = document.getElementById('rejectId').value;
+    var reason = document.getElementById('rejectReason').value;
+    var data = new URLSearchParams();
+    data.append('reason', reason);
+    fetch('/questions/review/reject/'+id, {method:'POST', body:data}).then(r=>r.json()).then(d=>{
+        if(d.success){ location.reload(); }
+        else { alert(d.error||'操作失败'); }
+    });
+}
+function viewDetail(id){
+    fetch('/questions/detail/'+id).then(r=>r.json()).then(d=>{
+        var html = '<table class="table table-bordered">'+
+            '<tr><th>类型</th><td>'+d.type+'</td></tr>'+
+            '<tr><th>内容</th><td>'+d.content+'</td></tr>';
+        if(d.option_a) html += '<tr><th>选项A</th><td>'+d.option_a+'</td></tr>';
+        if(d.option_b) html += '<tr><th>选项B</th><td>'+d.option_b+'</td></tr>';
+        if(d.option_c) html += '<tr><th>选项C</th><td>'+d.option_c+'</td></tr>';
+        if(d.option_d) html += '<tr><th>选项D</th><td>'+d.option_d+'</td></tr>';
+        if(d.option_e) html += '<tr><th>选项E</th><td>'+d.option_e+'</td></tr>';
+        html += '<tr><th>答案</th><td>'+d.answer+'</td></tr>'+
+            '<tr><th>分值</th><td>'+d.score+'</td></tr>'+
+            '<tr><th>难度</th><td>'+d.difficulty+'</td></tr>'+
+            '<tr><th>课程</th><td>'+d.course_name+'</td></tr>'+
+            '<tr><th>录入人</th><td>'+d.creator+'</td></tr>'+
+            '<tr><th>备注</th><td>'+d.remark+'</td></tr>'+
+            '</table>';
+        document.getElementById('detailBody').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    });
+}
+</script>
+{% endblock %}

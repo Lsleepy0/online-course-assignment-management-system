@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}历史作业{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">历史作业</h5></div>
+    <div class="card-body">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr><th>编号</th><th>名称</th><th>课程</th><th>状态</th><th>总分</th><th>截止时间</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+                {% for h in homeworks %}
+                <tr>
+                    <td>{{ h.id }}</td>
+                    <td>{{ h.name }}</td>
+                    <td>{{ h.course.name if h.course else '' }}</td>
+                    <td>{{ h.status }}</td>
+                    <td>{{ h.total_score }}</td>
+                    <td>{{ h.deadline.strftime('%Y-%m-%d %H:%M') if h.deadline else '' }}</td>
+                    <td><a href="/homework/manage/{{ h.id }}" class="btn btn-sm btn-outline-primary">查看详情</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

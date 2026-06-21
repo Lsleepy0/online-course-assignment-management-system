@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}创建作业{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">创建作业</h5></div>
+    <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/homework/create">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">作业名称 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">所属课程 <span class="text-danger">*</span></label>
+                    <select class="form-select" name="course_id" required>
+                        <option value="">请选择</option>
+                        {% for c in courses %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">发布时间</label>
+                    <input type="datetime-local" class="form-control" name="publish_time">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">截止时间</label>
+                    <input type="datetime-local" class="form-control" name="deadline">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">总分</label>
+                    <input type="number" class="form-control" name="total_score" value="100">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">指定班级（可多选）</label>
+                <select class="form-select" name="class_ids" multiple size="5">
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">附加学生（可多选）</label>
+                <select class="form-select" name="student_ids" multiple size="5">
+                    {% for s in students %}
+                    <option value="{{ s.id }}">{{ s.real_name or s.username }} ({{ s.username }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <hr>
+            <h6>作业题目（从题库选择，并指定每题分数）</h6>
+            <div class="mb-3">
+                {% for q in questions %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="question_ids" value="{{ q.id }}" id="q{{ q.id }}">
+                    <label class="form-check-label" for="q{{ q.id }}">
+                        [{{ q.type }}] {{ q.content[:50] }}{% if q.content|length > 50 %}...{% endif %}
+                    </label>
+                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:100px;" name="scores" value="5" min="1">
+                </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary">创建</button>
+            <a href="/homework/" class="btn btn-outline-secondary">返回</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

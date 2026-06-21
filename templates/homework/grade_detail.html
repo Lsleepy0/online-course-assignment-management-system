@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}批改作业{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>批改：{{ student.real_name or student.username }} - {{ hw.name }}</span>
+        <a href="/homework/manage/{{ hw.id }}" class="btn btn-sm btn-outline-secondary">返回</a>
+    </div>
+    <div class="card-body">
+        {% if not submission or submission.status not in ['已提交','已批改'] %}
+        <div class="alert alert-warning">该学生尚未提交作业</div>
+        {% else %}
+        <form method="post" action="/homework/grade/{{ hw.id }}/{{ student.id }}">
+            {% for hq in hw_questions %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    题目{{ loop.index }}（{{ hq.question.type }}，分值：{{ hq.score }}）
+                </div>
+                <div class="card-body">
+                    <p>{{ hq.question.content }}</p>
+                    {% if hq.question.option_a %}<p>A. {{ hq.question.option_a }}</p>{% endif %}
+                    {% if hq.question.option_b %}<p>B. {{ hq.question.option_b }}</p>{% endif %}
+                    {% if hq.question.option_c %}<p>C. {{ hq.question.option_c }}</p>{% endif %}
+                    {% if hq.question.option_d %}<p>D. {{ hq.question.option_d }}</p>{% endif %}
+                    {% if hq.question.option_e %}<p>E. {{ hq.question.option_e }}</p>{% endif %}
+                    <hr>
+                    <p><strong>学生答案：</strong>{{ answers[hq.question_id].content if hq.question_id in answers else '未作答' }}</p>
+                    <p><strong>正确答案：</strong>{{ hq.question.answer }}</p>
+                    {% set ans = answers.get(hq.question_id) %}
+                    {% if ans %}
+                    <p><strong>自动批改结果：</strong>
+                        {% if ans.is_correct %}<span class="text-success">正确</span>{% else %}<span class="text-danger">错误</span>{% endif %}
+                    </p>
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">给分</label>
+                            <input type="number" class="form-control" name="score_{{ hq.question_id }}" value="{{ ans.score if ans else 0 }}" min="0" max="{{ hq.score }}">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label">批改意见</label>
+                            <input type="text" class="form-control" name="comment_{{ hq.question_id }}" value="{{ ans.comment if ans else '' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="mb-3">
+                <label class="form-label">总体批改意见</label>
+                <textarea class="form-control" name="total_comment">{{ submission.comment if submission.comment else '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">完成批改</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

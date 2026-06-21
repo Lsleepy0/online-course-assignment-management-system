@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}错误{% endblock %}
+{% block content %}
+<div class="alert alert-danger">
+    <h4>发生错误</h4>
+    <p>{{ message }}</p>
+    <a href="/dashboard" class="btn btn-primary">返回首页</a>
+</div>
+{% endblock %}

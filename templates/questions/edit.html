@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}修改试题{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">修改试题</h5></div>
+    <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/questions/edit/{{ question.id }}">
+            <div class="mb-3">
+                <label class="form-label">题目类型 <span class="text-danger">*</span></label>
+                <select class="form-select" name="type" id="qtype" onchange="toggleOptions()">
+                    <option value="单选" {% if question.type=='单选' %}selected{% endif %}>单选</option>
+                    <option value="多选" {% if question.type=='多选' %}selected{% endif %}>多选</option>
+                    <option value="判断" {% if question.type=='判断' %}selected{% endif %}>判断</option>
+                    <option value="填空" {% if question.type=='填空' %}selected{% endif %}>填空</option>
+                    <option value="简答" {% if question.type=='简答' %}selected{% endif %}>简答</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">题目内容 <span class="text-danger">*</span></label>
+                <textarea class="form-control" name="content" rows="4" required>{{ question.content }}</textarea>
+            </div>
+            <div id="optionsArea">
+                <div class="mb-3">
+                    <label class="form-label">选项A</label>
+                    <input type="text" class="form-control" name="option_a" value="{{ question.option_a or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">选项B</label>
+                    <input type="text" class="form-control" name="option_b" value="{{ question.option_b or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">选项C</label>
+                    <input type="text" class="form-control" name="option_c" value="{{ question.option_c or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">选项D</label>
+                    <input type="text" class="form-control" name="option_d" value="{{ question.option_d or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">选项E</label>
+                    <input type="text" class="form-control" name="option_e" value="{{ question.option_e or '' }}">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">正确答案 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="answer" value="{{ question.answer }}" required>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">分值</label>
+                    <input type="number" class="form-control" name="score" value="{{ question.score }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">难度</label>
+                    <select class="form-select" name="difficulty">
+                        <option value="简单" {% if question.difficulty=='简单' %}selected{% endif %}>简单</option>
+                        <option value="中等" {% if question.difficulty=='中等' %}selected{% endif %}>中等</option>
+                        <option value="困难" {% if question.difficulty=='困难' %}selected{% endif %}>困难</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">所属课程 <span class="text-danger">*</span></label>
+                    <select class="form-select" name="course_id" required>
+                        {% for c in courses %}
+                        <option value="{{ c.id }}" {% if question.course_id==c.id %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">备注</label>
+                <input type="text" class="form-control" name="remark" value="{{ question.remark or '' }}">
+            </div>
+            <button type="submit" class="btn btn-primary">保存</button>
+            <a href="/questions/" class="btn btn-outline-secondary">返回</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleOptions(){
+    var t = document.getElementById('qtype').value;
+    var area = document.getElementById('optionsArea');
+    if(t == '单选' || t == '多选'){
+        area.style.display = 'block';
+    } else {
+        area.style.display = 'none';
+    }
+}
+toggleOptions();
+</script>
+{% endblock %}

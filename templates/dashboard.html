@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}首页{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>欢迎，{{ user.real_name or user.username }}</h3>
+    <span class="badge bg-primary">{{ user.role }}</span>
+</div>
+<div class="row">
+    {% if user.role == 'admin' %}
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h6 class="card-title">用户总数</h6>
+                <h2>{{ stats.user_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h6 class="card-title">组织节点</h6>
+                <h2>{{ stats.class_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h6 class="card-title">课程总数</h6>
+                <h2>{{ stats.course_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h6 class="card-title">作业总数</h6>
+                <h2>{{ stats.homework_count }}</h2>
+            </div>
+        </div>
+    </div>
+    {% elif user.role == 'teacher' %}
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h6 class="card-title">课程总数</h6>
+                <h2>{{ stats.course_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h6 class="card-title">试题总数</h6>
+                <h2>{{ stats.question_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h6 class="card-title">作业总数</h6>
+                <h2>{{ stats.homework_count }}</h2>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-md-6 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h6 class="card-title">可查看题库</h6>
+                <h2>{{ stats.question_count }}</h2>
+                <a href="/questions/library" class="text-white">前往浏览 →</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h6 class="card-title">我的作业</h6>
+                <h2>{{ stats.homework_count }}</h2>
+                <a href="/homework/student" class="text-white">前往查看 →</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<div class="card mt-3">
+    <div class="card-header">系统说明</div>
+    <div class="card-body">
+        <p>欢迎使用在线课程作业管理系统。本系统支持管理员、教师、学生三种角色，提供班级管理、用户管理、课程管理、题库管理、作业管理等功能。</p>
+        <ul>
+            {% if user.role == 'admin' %}
+            <li>管理员可管理班级组织结构、用户、课程、题库、作业等所有资源</li>
+            {% elif user.role == 'teacher' %}
+            <li>教师可管理课程、题库、作业，并批改学生作业</li>
+            {% else %}
+            <li>学生可浏览题库、查看作业、答题并查看批改结果</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

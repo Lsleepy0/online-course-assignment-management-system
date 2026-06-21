@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}批改作业{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>作业：{{ hw.name }}（{{ hw.course.name if hw.course else '' }}）</span>
+        <a href="/homework/manage" class="btn btn-sm btn-outline-secondary">返回</a>
+    </div>
+    <div class="card-body">
+        <h6>作业题目</h6>
+        <table class="table table-bordered mb-4">
+            <thead class="table-light">
+                <tr><th>编号</th><th>类型</th><th>题目内容</th><th>分值</th></tr>
+            </thead>
+            <tbody>
+                {% for hq in hw_questions %}
+                <tr>
+                    <td>{{ hq.question.id }}</td>
+                    <td>{{ hq.question.type }}</td>
+                    <td>{{ hq.question.content[:60] }}{% if hq.question.content|length > 60 %}...{% endif %}</td>
+                    <td>{{ hq.score }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h6>学生提交情况</h6>
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr><th>学号</th><th>账号</th><th>姓名</th><th>提交状态</th><th>成绩</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td>{{ s.id }}</td>
+                    <td>{{ s.username }}</td>
+                    <td>{{ s.real_name or '' }}</td>
+                    <td>
+                        {% if s.status == '已提交' %}
+                        <span class="badge bg-info">{{ s.status }}</span>
+                        {% elif s.status == '已批改' %}
+                        <span class="badge bg-success">{{ s.status }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ s.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.grade if s.grade != None else '-' }}</td>
+                    <td>
+                        <a href="/homework/grade/{{ hw.id }}/{{ s.id }}" class="btn btn-sm btn-outline-primary">批改</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

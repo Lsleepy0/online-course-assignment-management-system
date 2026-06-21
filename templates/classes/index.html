@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% macro render_node(n, all) %}
+<li class="tree-node" data-id="{{ n.id }}" data-name="{{ n.name }}" data-level="{{ n.level }}"
+    oncontextmenu="showContextMenu(event, {{ n.id }}, '{{ n.name }}', {{ n.parent_id or 'null' }}, {{ n.level }});return false;">
+    <span class="toggle" onclick="toggleNode(this, event)">▼</span>
+    <a href="#" onclick="loadDetail({{ n.id }});return false;">{{ n.name }}</a>
+    <ul>
+        {% for c in all %}
+        {% if c.parent_id == n.id %}
+        {{ render_node(c, all) }}
+        {% endif %}
+        {% endfor %}
+    </ul>
+</li>
+{% endmacro %}
+
+{% block title %}班级管理{% endblock %}
+{% block content %}
+<div class="alert alert-info">提示：支持三级结构，左击选择，右击可以增删</div>
+<div class="row">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>组织结构</span>
+                <button class="btn btn-sm btn-primary" onclick="openCreate(null)">新增根节点</button>
+            </div>
+            <div class="card-body" style="min-height:400px;">
+                <ul id="tree" class="tree">
+                    {% for n in nodes %}
+                    {% if not n.parent_id %}
+                    {{ render_node(n, nodes) }}
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">节点详情</div>
+            <div class="card-body" id="detailPanel">
+                <p class="text-muted">请点击左侧节点查看详情</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="nodeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">新增节点</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="nodeForm">
+                    <input type="hidden" id="nodeId" name="nodeId">
+                    <input type="hidden" id="parentId" name="parentId">
+                    <div class="mb-3">
+                        <label class="form-label">名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">上一级</label>
+                        <input type="text" class="form-control" id="parentName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排序号</label>
+                        <input type="text" class="form-control" id="sortNo" name="sortNo">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="status" id="statusOk" value="可用" checked>
+                                <label class="form-check-label" for="statusOk">可用</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="status" id="statusNo" value="禁用">
+                                <label class="form-check-label" for="statusNo">禁用</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">备注</label>
+                        <textarea class="form-control" id="remark" name="remark" maxlength="100"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveNode()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="contextMenu" class="context-menu" style="display:none;">
+    <a href="#" onclick="menuAddSibling();return false;" class="context-menu-item">添加兄弟部门</a>
+    <a href="#" onclick="menuAddChild();return false;" class="context-menu-item">添加子部门</a>
+    <a href="#" onclick="menuEdit();return false;" class="context-menu-item">修改</a>
+    <a href="#" onclick="menuDelete();return false;" class="context-menu-item">删除</a>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">确认删除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">确定要删除该节点吗？</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var currentMenuNode = null;
+var deleteNodeId = null;
+
+function toggleNode(el, e){
+    e.stopPropagation();
+    var ul = el.parentElement.querySelector('ul');
+    if(ul){
+        if(ul.style.display == 'none'){
+            ul.style.display = 'block';
+            el.textContent = '▼';
+        } else {
+            ul.style.display = 'none';
+            el.textContent = '▶';
+        }
+    }
+}
+
+function loadDetail(id){
+    fetch('/classes/detail/' + id).then(r=>r.json()).then(d=>{
+        var html = '<table class="table table-bordered">'+
+            '<tr><th>名称</th><td>'+d.name+'</td></tr>'+
+            '<tr><th>上一级</th><td>'+(d.parent_name||'无')+'</td></tr>'+
+            '<tr><th>层级</th><td>'+d.level+'</td></tr>'+
+            '<tr><th>排序号</th><td>'+(d.sort_no||'')+'</td></tr>'+
+            '<tr><th>状态</th><td>'+d.status+'</td></tr>'+
+            '<tr><th>备注</th><td>'+(d.remark||'')+'</td></tr>'+
+            '</table>';
+        document.getElementById('detailPanel').innerHTML = html;
+    });
+}
+
+function showContextMenu(e, id, name, parentId, level){
+    e.preventDefault();
+    currentMenuNode = {id: id, name: name, parentId: parentId, level: level};
+    var menu = document.getElementById('contextMenu');
+    menu.style.display = 'block';
+    menu.style.left = e.pageX + 'px';
+    menu.style.top = e.pageY + 'px';
+}
+
+document.addEventListener('click', function(){
+    document.getElementById('contextMenu').style.display = 'none';
+});
+
+function menuAddSibling(){
+    openCreate(currentMenuNode.parentId);
+}
+function menuAddChild(){
+    openCreate(currentMenuNode.id);
+}
+function menuEdit(){
+    openEdit(currentMenuNode.id);
+}
+function menuDelete(){
+    deleteNodeId = currentMenuNode.id;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function openCreate(parentId){
+    document.getElementById('nodeId').value = '';
+    document.getElementById('parentId').value = parentId || '';
+    document.getElementById('name').value = '';
+    document.getElementById('sortNo').value = '';
+    document.getElementById('remark').value = '';
+    document.getElementById('statusOk').checked = true;
+    document.getElementById('parentName').value = '';
+    document.getElementById('modalTitle').textContent = '新增节点';
+    if(parentId){
+        fetch('/classes/detail/'+parentId).then(r=>r.json()).then(d=>{
+            document.getElementById('parentName').value = d.name;
+        });
+    }
+    new bootstrap.Modal(document.getElementById('nodeModal')).show();
+}
+
+function openEdit(id){
+    fetch('/classes/detail/'+id).then(r=>r.json()).then(d=>{
+        document.getElementById('nodeId').value = id;
+        document.getElementById('parentId').value = '';
+        document.getElementById('name').value = d.name;
+        document.getElementById('sortNo').value = d.sort_no || '';
+        document.getElementById('remark').value = d.remark || '';
+        if(d.status == '可用'){ document.getElementById('statusOk').checked = true; }
+        else { document.getElementById('statusNo').checked = true; }
+        document.getElementById('parentName').value = d.parent_name || '';
+        document.getElementById('modalTitle').textContent = '修改节点';
+        new bootstrap.Modal(document.getElementById('nodeModal')).show();
+    });
+}
+
+function saveNode(){
+    var id = document.getElementById('nodeId').value;
+    var data = new URLSearchParams();
+    data.append('name', document.getElementById('name').value);
+    data.append('sort_no', document.getElementById('sortNo').value);
+    var status = document.querySelector('input[name=status]:checked').value;
+    data.append('status', status);
+    data.append('remark', document.getElementById('remark').value);
+    if(id){
+        fetch('/classes/update/'+id, {method:'POST', body:data}).then(r=>r.json()).then(d=>{
+            if(d.success){ location.reload(); }
+            else { alert(d.error||'保存失败'); }
+        });
+    } else {
+        data.append('parent_id', document.getElementById('parentId').value);
+        fetch('/classes/create', {method:'POST', body:data}).then(r=>r.json()).then(d=>{
+            if(d.success){ location.reload(); }
+            else { alert(d.error||'保存失败'); }
+        });
+    }
+}
+
+function confirmDelete(){
+    fetch('/classes/delete/'+deleteNodeId, {method:'POST'}).then(r=>r.json()).then(d=>{
+        if(d.success){ location.reload(); }
+        else { alert(d.error||'删除失败'); }
+    });
+}
+</script>
+{% endblock %}

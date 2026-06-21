@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}批改结果{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>作业结果：{{ hw.name }}</span>
+        <a href="/homework/student" class="btn btn-sm btn-outline-secondary">返回</a>
+    </div>
+    <div class="card-body">
+        {% if not submission %}
+        <div class="alert alert-warning">未找到提交记录</div>
+        {% else %}
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h6>成绩</h6>
+                        <h2>{{ submission.total_score if submission.total_score != None else '-' }} / {{ hw.total_score }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h6>提交时间</h6>
+                        <h6>{{ submission.submit_time.strftime('%Y-%m-%d %H:%M') if submission.submit_time else '-' }}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h6>批改状态</h6>
+                        <h6>{{ submission.status }}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if submission.comment %}
+        <div class="alert alert-info"><strong>批改意见：</strong>{{ submission.comment }}</div>
+        {% endif %}
+        <h6>题目详情</h6>
+        {% for hq in hw_questions %}
+        <div class="card mb-2">
+            <div class="card-header">
+                第{{ loop.index }}题（{{ hq.question.type }}，{{ hq.score }}分）
+            </div>
+            <div class="card-body">
+                <p>{{ hq.question.content }}</p>
+                {% set ans = answers.get(hq.question_id) %}
+                {% if ans %}
+                <p><strong>你的答案：</strong>{{ ans.content or '未作答' }}</p>
+                <p><strong>正确答案：</strong>{{ hq.question.answer }}</p>
+                <p><strong>得分：</strong>{{ ans.score }} / {{ hq.score }}
+                    {% if ans.is_correct %}<span class="text-success">✓</span>{% else %}<span class="text-danger">✗</span>{% endif %}
+                </p>
+                {% if ans.comment %}<p><strong>批改意见：</strong>{{ ans.comment }}</p>{% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

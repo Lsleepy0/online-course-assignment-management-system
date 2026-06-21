@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}添加课程{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">添加课程</h5></div>
+    <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/courses/create">
+            <div class="mb-3">
+                <label class="form-label">课程名称 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="name" required>
+                <small class="text-muted">1-50字符</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">课程描述</label>
+                <textarea class="form-control" name="description"></textarea>
+                <small class="text-muted">最多200字符</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">授课教师</label>
+                <input type="text" class="form-control" value="{{ user.real_name or user.username }}" readonly>
+                <small class="text-muted">自动填充当前登录用户</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">设置班级（可多选）</label>
+                <select class="form-select" name="class_ids" multiple size="6">
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+                <small class="text-muted">按住Ctrl多选</small>
+            </div>
+            <button type="submit" class="btn btn-primary">保存</button>
+            <a href="/courses/" class="btn btn-outline-secondary">返回</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

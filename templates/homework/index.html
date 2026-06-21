@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}作业管理{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>作业列表</span>
+        <a href="/homework/create" class="btn btn-primary btn-sm">创建作业</a>
+    </div>
+    <div class="card-body">
+        <form id="searchForm" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <input type="text" class="form-control" name="hw_no" value="{{ filters.hw_no }}" placeholder="作业编号">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="course_id">
+                    <option value="">全部课程</option>
+                    {% for c in courses %}
+                    <option value="{{ c.id }}" {% if filters.course_id==c.id|string %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="status">
+                    <option value="">全部状态</option>
+                    <option value="未发布" {% if filters.status=='未发布' %}selected{% endif %}>未发布</option>
+                    <option value="已发布" {% if filters.status=='已发布' %}selected{% endif %}>已发布</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="button" id="searchBtn" class="btn btn-primary w-100">搜索</button>
+            </div>
+        </form>
+
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>作业编号</th>
+                    <th>名称</th>
+                    <th>课程</th>
+                    <th>状态</th>
+                    <th>总分</th>
+                    <th>截止时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in homeworks %}
+                <tr>
+                    <td>{{ h.id }}</td>
+                    <td>{{ h.name }}</td>
+                    <td>{{ h.course.name if h.course else '' }}</td>
+                    <td>
+                        {% if h.status == '已发布' %}
+                        <span class="badge bg-success">{{ h.status }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ h.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ h.total_score }}</td>
+                    <td>{{ h.deadline.strftime('%Y-%m-%d %H:%M') if h.deadline else '' }}</td>
+                    <td>
+                        <a href="/homework/edit/{{ h.id }}" class="btn btn-sm btn-outline-primary">修改</a>
+                        {% if h.status == '未发布' %}
+                        <button class="btn btn-sm btn-success" onclick="publishHw({{ h.id }})">发布</button>
+                        {% endif %}
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteHw({{ h.id }})">删除</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <nav>
+            <ul class="pagination">
+                <li class="page-item {% if page<=1 %}disabled{% endif %}">
+                    <a class="page-link" href="/homework/?page={{ page-1 }}">上一页</a>
+                </li>
+                {% for p in range(1, total_pages+1) %}
+                <li class="page-item {% if p==page %}active{% endif %}">
+                    <a class="page-link" href="/homework/?page={{ p }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if page>=total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="/homework/?page={{ page+1 }}">下一页</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function publishHw(id){
+    if(!confirm('确认发布该作业？发布后学生将可见。')) return;
+    fetch('/homework/publish/'+id, {method:'POST'}).then(r=>r.json()).then(d=>{
+        if(d.success){ location.reload(); }
+        else { alert(d.error||'发布失败'); }
+    });
+}
+function deleteHw(id){
+    if(!confirm('确定要删除该作业吗？')) return;
+    fetch('/homework/delete/'+id, {method:'POST'}).then(r=>r.json()).then(d=>{
+        if(d.success){ location.reload(); }
+        else { alert(d.error||'删除失败'); }
+    });
+}
+document.getElementById('searchBtn').onclick = function(e){
+    e.preventDefault();
+};
+</script>
+{% endblock %}

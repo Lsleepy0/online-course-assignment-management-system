@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}修改用户{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">修改用户</h5></div>
+    <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/users/edit/{{ edit_user.id }}" enctype="multipart/form-data">
+            <h6>基本信息</h6>
+            <hr>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">登录账号</label>
+                    <input type="text" class="form-control" value="{{ edit_user.username }}" readonly>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">用户姓名 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="real_name" value="{{ edit_user.real_name or '' }}" required maxlength="20">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">所属部门类型</label>
+                    <select class="form-select" name="dept_type">
+                        <option value="总部">总部</option>
+                        <option value="分部">分部</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">班级名称</label>
+                    <select class="form-select" name="class_id">
+                        <option value="">请选择</option>
+                        {% for c in classes if c.level == 3 %}
+                        <option value="{{ c.id }}" {% if edit_user.class_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">角色 <span class="text-danger">*</span></label>
+                    <select class="form-select" name="role">
+                        <option value="admin" {% if edit_user.role=='admin' %}selected{% endif %}>管理员</option>
+                        <option value="teacher" {% if edit_user.role=='teacher' %}selected{% endif %}>教师</option>
+                        <option value="student" {% if edit_user.role=='student' %}selected{% endif %}>学生</option>
+                        <option value="行政操作员" {% if edit_user.role=='行政操作员' %}selected{% endif %}>行政操作员</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">状态</label>
+                    <select class="form-select" name="status">
+                        <option value="可用" {% if edit_user.status=='可用' %}selected{% endif %}>可用</option>
+                        <option value="禁用" {% if edit_user.status=='禁用' %}selected{% endif %}>禁用</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">备注</label>
+                    <input type="text" class="form-control" name="remark" value="{{ edit_user.remark or '' }}">
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="#extInfo" data-bs-toggle="collapse" class="text-decoration-none">
+                    <h6>扩展信息（点击展开/折叠）</h6>
+                </a>
+                <hr>
+                <div class="collapse" id="extInfo">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">身份证号</label>
+                            <input type="text" class="form-control" name="id_card" maxlength="20" value="{{ edit_user.id_card or '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">地址</label>
+                            <input type="text" class="form-control" name="address" maxlength="100" value="{{ edit_user.address or '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">手机号</label>
+                            <input type="text" class="form-control" name="phone" maxlength="11" value="{{ edit_user.phone or '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">性别</label>
+                            <select class="form-select" name="gender">
+                                <option value="">请选择</option>
+                                <option value="男" {% if edit_user.gender=='男' %}selected{% endif %}>男</option>
+                                <option value="女" {% if edit_user.gender=='女' %}selected{% endif %}>女</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">紧急联系人</label>
+                            <input type="text" class="form-control" name="emergency_contact" maxlength="20" value="{{ edit_user.emergency_contact or '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">紧急联系电话</label>
+                            <input type="text" class="form-control" name="emergency_phone" value="{{ edit_user.emergency_phone or '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">入校时间</label>
+                            <input type="date" class="form-control" name="enroll_date" value="{{ edit_user.enroll_date or '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">离校时间</label>
+                            <input type="date" class="form-control" name="leave_date" value="{{ edit_user.leave_date or '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">民族</label>
+                            <select class="form-select" name="nation">
+                                <option value="">请选择</option>
+                                <option value="汉族" {% if edit_user.nation=='汉族' %}selected{% endif %}>汉族</option>
+                                <option value="回族" {% if edit_user.nation=='回族' %}selected{% endif %}>回族</option>
+                                <option value="满族" {% if edit_user.nation=='满族' %}selected{% endif %}>满族</option>
+                                <option value="其他" {% if edit_user.nation=='其他' %}selected{% endif %}>其他</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">工作状态</label>
+                            <select class="form-select" name="work_status">
+                                <option value="">请选择</option>
+                                <option value="在读" {% if edit_user.work_status=='在读' %}selected{% endif %}>在读</option>
+                                <option value="毕业" {% if edit_user.work_status=='毕业' %}selected{% endif %}>毕业</option>
+                                <option value="休学" {% if edit_user.work_status=='休学' %}selected{% endif %}>休学</option>
+                                <option value="退学" {% if edit_user.work_status=='退学' %}selected{% endif %}>退学</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">个人详情备注</label>
+                            <textarea class="form-control" name="detail_remark" maxlength="200">{{ edit_user.detail_remark or '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a href="/users/" class="btn btn-outline-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}答题{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>作业：{{ hw.name }}（总分：{{ hw.total_score }}）</span>
+        <a href="/homework/student" class="btn btn-sm btn-outline-secondary">返回</a>
+    </div>
+    <div class="card-body">
+        {% if submission and submission.status == '已批改' %}
+        <div class="alert alert-success">该作业已批改，成绩：{{ submission.total_score }} 分</div>
+        {% elif submission and submission.status == '已提交' %}
+        <div class="alert alert-info">作业已提交，等待批改</div>
+        {% endif %}
+        {% if not submission or submission.status in ['未提交', None] %}
+        <form method="post" action="/homework/answer/{{ hw.id }}">
+            {% for hq in hw_questions %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    第{{ loop.index }}题（{{ hq.question.type }}，{{ hq.score }}分）
+                </div>
+                <div class="card-body">
+                    <p>{{ hq.question.content }}</p>
+                    {% if hq.question.type == '单选' or hq.question.type == '多选' %}
+                    {% if hq.question.option_a %}<div class="form-check"><input class="form-check-input" type="{% if hq.question.type=='多选' %}checkbox{% else %}radio{% endif %}" name="q_{{ hq.question_id }}" value="A" id="a{{ hq.question_id }}"><label class="form-check-label" for="a{{ hq.question_id }}">A. {{ hq.question.option_a }}</label></div>{% endif %}
+                    {% if hq.question.option_b %}<div class="form-check"><input class="form-check-input" type="{% if hq.question.type=='多选' %}checkbox{% else %}radio{% endif %}" name="q_{{ hq.question_id }}" value="B" id="b{{ hq.question_id }}"><label class="form-check-label" for="b{{ hq.question_id }}">B. {{ hq.question.option_b }}</label></div>{% endif %}
+                    {% if hq.question.option_c %}<div class="form-check"><input class="form-check-input" type="{% if hq.question.type=='多选' %}checkbox{% else %}radio{% endif %}" name="q_{{ hq.question_id }}" value="C" id="c{{ hq.question_id }}"><label class="form-check-label" for="c{{ hq.question_id }}">C. {{ hq.question.option_c }}</label></div>{% endif %}
+                    {% if hq.question.option_d %}<div class="form-check"><input class="form-check-input" type="{% if hq.question.type=='多选' %}checkbox{% else %}radio{% endif %}" name="q_{{ hq.question_id }}" value="D" id="d{{ hq.question_id }}"><label class="form-check-label" for="d{{ hq.question_id }}">D. {{ hq.question.option_d }}</label></div>{% endif %}
+                    {% if hq.question.option_e %}<div class="form-check"><input class="form-check-input" type="{% if hq.question.type=='多选' %}checkbox{% else %}radio{% endif %}" name="q_{{ hq.question_id }}" value="E" id="e{{ hq.question_id }}"><label class="form-check-label" for="e{{ hq.question_id }}">E. {{ hq.question.option_e }}</label></div>{% endif %}
+                    {% elif hq.question.type == '判断' %}
+                    <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ hq.question_id }}" value="正确" id="t{{ hq.question_id }}"><label class="form-check-label" for="t{{ hq.question_id }}">正确</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ hq.question_id }}" value="错误" id="f{{ hq.question_id }}"><label class="form-check-label" for="f{{ hq.question_id }}">错误</label></div>
+                    {% else %}
+                    <textarea class="form-control" name="q_{{ hq.question_id }}" rows="3"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            <button type="submit" name="action" value="save" class="btn btn-outline-secondary">暂存</button>
+            <button type="submit" name="action" value="submit" class="btn btn-primary" onclick="return confirm('确认提交作业？提交后不可修改。')">提交作业</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

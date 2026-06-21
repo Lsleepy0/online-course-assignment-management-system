@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}新增用户{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">新增用户</h5></div>
+    <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/users/create_submit" enctype="multipart/form-data">
+            <h6>基本信息</h6>
+            <hr>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">登录账号 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="username" required maxlength="20">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">用户姓名 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="real_name" required maxlength="20">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">所属部门类型</label>
+                    <select class="form-select" name="dept_type">
+                        <option value="总部">总部</option>
+                        <option value="分部">分部</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">分部名称</label>
+                    <select class="form-select" name="branch_id" id="branch_id" onchange="loadMajors()">
+                        <option value="">请选择</option>
+                        {% for c in classes if c.level == 1 %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">专业名称</label>
+                    <select class="form-select" name="major_id" id="major_id" onchange="loadClasses()">
+                        <option value="">请选择</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">班级名称</label>
+                    <select class="form-select" name="class_id" id="class_id">
+                        <option value="">请选择</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">角色 <span class="text-danger">*</span></label>
+                    <select class="form-select" name="role">
+                        <option value="admin">管理员</option>
+                        <option value="teacher">教师</option>
+                        <option value="student" selected>学生</option>
+                        <option value="行政操作员">行政操作员</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">状态</label>
+                    <select class="form-select" name="status">
+                        <option value="可用">可用</option>
+                        <option value="禁用">禁用</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">备注</label>
+                    <input type="text" class="form-control" name="remark">
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="#extInfo" data-bs-toggle="collapse" class="text-decoration-none">
+                    <h6>扩展信息（点击展开/折叠）</h6>
+                </a>
+                <hr>
+                <div class="collapse" id="extInfo">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">身份证号</label>
+                            <input type="text" class="form-control" name="id_card" maxlength="20">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">地址</label>
+                            <input type="text" class="form-control" name="address" maxlength="100">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">手机号</label>
+                            <input type="text" class="form-control" name="phone" maxlength="11">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">性别</label>
+                            <select class="form-select" name="gender">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">紧急联系人</label>
+                            <input type="text" class="form-control" name="emergency_contact" maxlength="20">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">紧急联系电话</label>
+                            <input type="text" class="form-control" name="emergency_phone">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">照片上传</label>
+                            <input type="file" class="form-control" name="photo">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">入校时间</label>
+                            <input type="date" class="form-control" name="enroll_date">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">离校时间</label>
+                            <input type="date" class="form-control" name="leave_date">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">民族</label>
+                            <select class="form-select" name="nation">
+                                <option value="">请选择</option>
+                                <option value="汉族">汉族</option>
+                                <option value="回族">回族</option>
+                                <option value="满族">满族</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">工作状态</label>
+                            <select class="form-select" name="work_status">
+                                <option value="">请选择</option>
+                                <option value="在读">在读</option>
+                                <option value="毕业">毕业</option>
+                                <option value="休学">休学</option>
+                                <option value="退学">退学</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">个人详情备注</label>
+                            <textarea class="form-control" name="detail_remark" maxlength="200"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a href="/users/" class="btn btn-outline-secondary">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var allClasses = {{ classes | tojson }};
+function loadMajors(){
+    var bid = document.getElementById('branch_id').value;
+    var majorSel = document.getElementById('major_id');
+    majorSel.innerHTML = '<option value="">请选择</option>';
+    document.getElementById('class_id').innerHTML = '<option value="">请选择</option>';
+    allClasses.forEach(function(c){
+        if(c.parent_id != null && c.parent_id == bid && c.level == 2){
+            majorSel.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>';
+        }
+    });
+}
+function loadClasses(){
+    var mid = document.getElementById('major_id').value;
+    var classSel = document.getElementById('class_id');
+    classSel.innerHTML = '<option value="">请选择</option>';
+    allClasses.forEach(function(c){
+        if(c.parent_id != null && c.parent_id == mid && c.level == 3){
+            classSel.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>';
+        }
+    });
+}
+</script>
+{% endblock %}

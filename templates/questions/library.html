@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}题库管理{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">题库管理</h5></div>
+    <div class="card-body">
+        <form method="get" action="/questions/library" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <select class="form-select" name="qtype">
+                    <option value="">全部类型</option>
+                    <option value="单选" {% if filters.qtype=='单选' %}selected{% endif %}>单选</option>
+                    <option value="多选" {% if filters.qtype=='多选' %}selected{% endif %}>多选</option>
+                    <option value="判断" {% if filters.qtype=='判断' %}selected{% endif %}>判断</option>
+                    <option value="填空" {% if filters.qtype=='填空' %}selected{% endif %}>填空</option>
+                    <option value="简答" {% if filters.qtype=='简答' %}selected{% endif %}>简答</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="course_id">
+                    <option value="">全部课程</option>
+                    {% for c in courses %}
+                    <option value="{{ c.id }}" {% if filters.course_id==c.id|string %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="status">
+                    <option value="">全部状态</option>
+                    <option value="未审核" {% if filters.status=='未审核' %}selected{% endif %}>未审核</option>
+                    <option value="待审核" {% if filters.status=='待审核' %}selected{% endif %}>待审核</option>
+                    <option value="已发布" {% if filters.status=='已发布' %}selected{% endif %}>已发布</option>
+                    <option value="已关闭" {% if filters.status=='已关闭' %}selected{% endif %}>已关闭</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">搜索</button>
+            </div>
+        </form>
+
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>编号</th>
+                    <th>题目内容</th>
+                    <th>类型</th>
+                    <th>所属课程</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr>
+                    <td>{{ q.id }}</td>
+                    <td>{{ q.content[:40] }}{% if q.content|length > 40 %}...{% endif %}</td>
+                    <td>{{ q.type }}</td>
+                    <td>{{ q.course.name if q.course else '' }}</td>
+                    <td>{{ q.status }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" onclick="viewDetail({{ q.id }})">详情</button>
+                        {% if user.role in ['admin','teacher'] %}
+                        <a href="/questions/edit/{{ q.id }}" class="btn btn-sm btn-outline-primary">修改</a>
+                        {% if q.status != '已关闭' %}
+                        <button class="btn btn-sm btn-outline-warning" onclick="closeQ({{ q.id }})">关闭</button>
+                        {% endif %}
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteQ({{ q.id }})">删除</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <nav>
+            <ul class="pagination">
+                <li class="page-item {% if page<=1 %}disabled{% endif %}">
+                    <a class="page-link" href="/questions/library?page={{ page-1 }}">上一页</a>
+                </li>
+                {% for p in range(1, total_pages+1) %}
+                <li class="page-item {% if p==page %}active{% endif %}">
+                    <a class="page-link" href="/questions/library?page={{ p }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if page>=total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="/questions/library?page={{ page+1 }}">下一页</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">试题详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailBody"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function closeQ(id){
+    if(!confirm('确定要关闭该试题吗？关闭后不可被作业引用。')) return;
+    fetch('/questions/close/'+id, {method:'POST'}).then(r=>r.json()).then(d=>{
+        if(d.success){ location.reload(); }
+        else { alert(d.error||'操作失败'); }
+    });
+}
+function deleteQ(id){
+    if(!confirm('确定要删除该试题吗？')) return;
+    fetch('/questions/delete/'+id, {method:'POST'}).then(r=>r.json()).then(d=>{
+        if(d.success){ location.reload(); }
+        else { alert(d.error||'删除失败'); }
+    });
+}
+function viewDetail(id){
+    fetch('/questions/detail/'+id).then(r=>r.json()).then(d=>{
+        var html = '<table class="table table-bordered">'+
+            '<tr><th>类型</th><td>'+d.type+'</td></tr>'+
+            '<tr><th>内容</th><td>'+d.content+'</td></tr>';
+        if(d.option_a) html += '<tr><th>选项A</th><td>'+d.option_a+'</td></tr>';
+        if(d.option_b) html += '<tr><th>选项B</th><td>'+d.option_b+'</td></tr>';
+        if(d.option_c) html += '<tr><th>选项C</th><td>'+d.option_c+'</td></tr>';
+        if(d.option_d) html += '<tr><th>选项D</th><td>'+d.option_d+'</td></tr>';
+        if(d.option_e) html += '<tr><th>选项E</th><td>'+d.option_e+'</td></tr>';
+        html += '<tr><th>答案</th><td>'+d.answer+'</td></tr>'+
+            '<tr><th>分值</th><td>'+d.score+'</td></tr>'+
+            '<tr><th>难度</th><td>'+d.difficulty+'</td></tr>'+
+            '<tr><th>课程</th><td>'+d.course_name+'</td></tr>'+
+            '<tr><th>状态</th><td>'+d.status+'</td></tr>'+
+            '<tr><th>录入人</th><td>'+d.creator+'</td></tr>'+
+            '<tr><th>备注</th><td>'+d.remark+'</td></tr>';
+        if(d.reject_reason) html += '<tr><th>驳回原因</th><td>'+d.reject_reason+'</td></tr>';
+        html += '</table>';
+        document.getElementById('detailBody').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    });
+}
+</script>
+{% endblock %}

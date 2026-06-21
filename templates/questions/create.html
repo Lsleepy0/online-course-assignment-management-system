@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}添加试题{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">添加试题</h5></div>
+    <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/questions/create">
+            <div class="mb-3">
+                <label class="form-label">题目类型 <span class="text-danger">*</span></label>
+                <select class="form-select" name="type" id="qtype" onchange="toggleOptions()">
+                    <option value="">请选择</option>
+                    <option value="单选">单选</option>
+                    <option value="多选">多选</option>
+                    <option value="判断">判断</option>
+                    <option value="填空">填空</option>
+                    <option value="简答">简答</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">题目内容 <span class="text-danger">*</span></label>
+                <textarea class="form-control" name="content" rows="4" required></textarea>
+            </div>
+            <div id="optionsArea" style="display:none;">
+                <div class="mb-3">
+                    <label class="form-label">选项A</label>
+                    <input type="text" class="form-control" name="option_a">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">选项B</label>
+                    <input type="text" class="form-control" name="option_b">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">选项C</label>
+                    <input type="text" class="form-control" name="option_c">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">选项D</label>
+                    <input type="text" class="form-control" name="option_d">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">选项E</label>
+                    <input type="text" class="form-control" name="option_e">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">正确答案 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="answer" required>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">分值</label>
+                    <input type="number" class="form-control" name="score" value="5">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">难度</label>
+                    <select class="form-select" name="difficulty">
+                        <option value="简单">简单</option>
+                        <option value="中等">中等</option>
+                        <option value="困难">困难</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">所属课程 <span class="text-danger">*</span></label>
+                    <select class="form-select" name="course_id" required>
+                        <option value="">请选择</option>
+                        {% for c in courses %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">备注</label>
+                <input type="text" class="form-control" name="remark">
+            </div>
+            <button type="submit" class="btn btn-primary">保存</button>
+            <a href="/questions/" class="btn btn-outline-secondary">返回</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleOptions(){
+    var t = document.getElementById('qtype').value;
+    var area = document.getElementById('optionsArea');
+    if(t == '单选' || t == '多选'){
+        area.style.display = 'block';
+    } else {
+        area.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

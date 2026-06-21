@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 在线课程作业管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">在线课程作业管理系统</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-center mb-3">用户登录</h5>
+                    {% if error %}
+                    <div class="alert alert-danger" id="error-msg">{{ error }}</div>
+                    {% endif %}
+                    <form method="post" action="/auth/login" id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" name="username" id="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" name="password" id="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">验证码</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="captcha" id="captcha" required maxlength="4">
+                                <img id="captchaImg" src="data:image/png;base64,{{ captcha_img }}" onclick="refreshCaptcha()" title="点击刷新" style="height:38px;cursor:pointer;">
+                            </div>
+                        </div>
+                        <input type="hidden" name="captcha_code" id="captcha_code" value="{{ captcha_code }}">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">登录</button>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="/auth/register">没有账号？立即注册</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-3 text-muted small">
+                <p>测试账号：admin/111111（管理员） teacher1/111111（教师） student1/111111（学生）</p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function refreshCaptcha(){
+    fetch('/auth/captcha').then(r=>r.json()).then(d=>{
+        document.getElementById('captchaImg').src = 'data:image/png;base64,' + d.img;
+        document.getElementById('captcha_code').value = d.code;
+    });
+}
+window.onload = function(){
+    var err = document.getElementById('error-msg');
+    if(err){
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('captcha').value = '';
+    }
+}
+</script>
+</body>
+</html>
